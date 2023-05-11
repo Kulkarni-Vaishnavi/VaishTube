@@ -40,7 +40,7 @@ export const signin = async (req, res, next) => {
         const {password , ...otherDetails} = user._doc;//triming out the password to not send in res.json
         res.cookie("access_token", token, {
             httpOnly: true,
-        }).status(200).json(otherDetails);
+        }).status(200).json({otherDetails,token});
 
     } catch (err) {
         next(err);

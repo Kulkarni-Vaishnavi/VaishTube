@@ -22,6 +22,8 @@ const connect = async () =>{
 
 app.use(express.json())//allows the system to take up the json externally
 app.use(cookieParser())//for creating cookies
+app.use(express.urlencoded({extended: true}));
+app.use(express.json());
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', 'Content-Type');

@@ -44,7 +44,6 @@ export const getUser = async (req,res,next) => {
             return next(createError(404,"User not found!"));
         }
         res.status(200).json({
-            success : true,
             user
         });
     } catch (err) {

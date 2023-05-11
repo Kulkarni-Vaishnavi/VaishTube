@@ -1,5 +1,13 @@
-import React from 'react'
-import styled from 'styled-components'
+import React from 'react';
+import styled from "styled-components";
+import { useState } from "react";
+import axios from "axios";
+import { useDispatch } from 'react-redux';
+import { loginFailure, loginStart, loginSuccess } from '../redux/userSlice';
+// import { auth, provider} from "../firebase.js";
+// import { signInWithPopup } from "firebase/auth"
+// import { useNavigate } from 'react-router-dom';
+
 
 const Container = styled.div`
     display : flex;
@@ -64,28 +72,50 @@ const Link = styled.span`
 `;
 
 export const SignIn = () => {
+
+  //fetching data by Onchange method in frontend itself
+
+  const [name,setName] = useState("");
+  const [email,setEmail] = useState("");
+  const [password,setPassword] = useState("");
+  const dispatch = useDispatch()
+  //e ->event
+  const handleLogin = async (e) => {
+    e.preventDefault();//wont refresh the page until job is done
+    dispatch(loginStart());
+    try{
+      const res = await axios.post("http://localhost:8800/api/auth/signin", {
+        name,password
+      })
+      dispatch(loginSuccess(res.data));
+    } catch (err) {
+      dispatch(loginFailure());
+    }
+  }
+
   return (
     <Container>
-        <Wrapper>
+      <Wrapper>
         <Title>Sign in</Title>
-            <SubTitle>to continue to YouTube</SubTitle>
-            <Input placeholder="username" />
-            <Input type="password" placeholder='password'/>
-            <Button>Sign in</Button>
-            <Title>or</Title>
-            <Input placeholder="username" />
-            <Input placeholder="email" />
-            <Input type="password" placeholder="password" />
-            <Button>Sign up</Button>
-        </Wrapper>
-        <More>
-            English(USA)
-            <Links>
-              <Link>Help</Link>
-              <Link>Privacy</Link>
-              <Link>Terms</Link>
-            </Links>
-          </More>
+        <SubTitle>to continue to Youtube</SubTitle>
+        <Input placeholder="username" onChange={e=>setName(e.target.value)} />
+        <Input type="password" placeholder="password" onChange={e=>setPassword(e.target.value)} />
+        <Button onClick={handleLogin}>Sign in</Button>
+        <Title>or</Title>
+        {/* <Button onClick={signInWithGoogle}>Sign in with Google</Button> */}
+        <Input placeholder="username" onChange={e=>setName(e.target.value)} />
+        <Input placeholder="email" onChange={e=>setEmail(e.target.value)} />
+        <Input type="password" placeholder="password" onChange={e=>setPassword(e.target.value)} />
+        <Button>Sign up</Button>
+      </Wrapper>
+      <More>
+        English(USA)
+        <Links>
+          <Link>Help</Link>
+          <Link>Privacy</Link>
+          <Link>Terms</Link>
+        </Links>
+      </More>
     </Container>
-  )
+  );
 }

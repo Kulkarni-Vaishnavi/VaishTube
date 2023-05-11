@@ -18,6 +18,8 @@ import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import SettingsBrightnessOutlinedIcon from "@mui/icons-material/SettingsBrightnessOutlined";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useDispatch } from 'react-redux';
 
 const Container = styled.div`
   flex: 1.25;/*times width*/
@@ -87,93 +89,125 @@ const Button = styled.button`
   gap : 5px;
 `;
 
+
 const Menu = ({ darkMode, setDarkMode }) => {
+  const { currentUser } = useSelector((state) => state.user);
+
+  const dispatch = useDispatch();
+  const handleLogout = async () => {
+    // dispatch(logout());
+  }
+
   return (
     <Container>
-        <Wrapper>
-        <Link to="/" style={{ textDecoration : "none", color: "inherit" }}>
+      <Wrapper>
+        <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
           <Logo>
-            <Img  src={YouTube}/>
-                YouTube
+            <Img src={YouTube} />
+            YouTube
           </Logo>
-        </Link>  
-            <Item>
-                <HomeIcon/>
-                Home
-            </Item>
-            <Item>
-        <ExploreOutlinedIcon />
-        Explore
-      </Item>
-      <Item>
-        <SubscriptionsOutlinedIcon />
-        Subscriptions
-      </Item>
-      <Hr/>
-      <Item>
-        <VideoLibraryOutlinedIcon />
-        Library
-      </Item>
-      <Item>
-        <HistoryOutlinedIcon />
-        History
-      </Item>
-      <Hr/>
-      <Login>
-        Sign in to like the videos, comment and subscribe.
-        <Link to="signin" style={{textDecoration : "none"}}>
-          <Button>
-          <AccountCircleOutlinedIcon />
-            SIGN IN
-          </Button>
         </Link>
-      </Login>
-      <Hr/>
-      <Title>BEST OF YOUTUBE</Title>
-      <Item> 
-        <LibraryMusicOutlinedIcon />
-        Music
-      </Item>
-      <Item>
-        <SportsBasketballOutlinedIcon />
-        Sports
-      </Item>
-      <Item>
-        <SportsEsportsOutlinedIcon />
-        Gaming
-      </Item>
-      <Item>
-        <MovieOutlinedIcon />
-        Movies
-      </Item>
-      <Item>
-        <ArticleOutlinedIcon />
-        News
-      </Item>
-      <Item>
-        <LiveTvOutlinedIcon />
-        Live
-      </Item>
-      <Hr />
-      <Item>
-        <SettingsOutlinedIcon />
-        Settings
-      </Item>
-      <Item>
-        <FlagOutlinedIcon />
-        Report
-      </Item>
-      <Item>
-        <HelpOutlineOutlinedIcon />
-        Help
-      </Item>
-      <Item onClick={() => setDarkMode(!darkMode)}>
-        <SettingsBrightnessOutlinedIcon />
-        {darkMode ? "Light Mode" : "Dark Mode"}
-      </Item>
-        </Wrapper>
+        <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+          <Item>
+            <HomeIcon />
+            Home
+          </Item>
+        </Link>
+        <Link to="/trends" style={{ textDecoration: "none", color: "inherit" }}>
+          <Item>
+            <ExploreOutlinedIcon />
+            Explore
+          </Item>
+        </Link>
+        <Link
+          to="/subscriptions"
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <Item>
+            <SubscriptionsOutlinedIcon />
+            Subscriptions
+          </Item>
+        </Link>
+        <Hr />
+        <Item>
+          <VideoLibraryOutlinedIcon />
+          Library
+        </Item>
+        <Item>
+          <HistoryOutlinedIcon />
+          History
+        </Item>
+        <Hr />
+        {!currentUser && (
+          <>
+            <Login>
+              {/* <TextCustom>
+                Sign in to like the videos, comment and subscribe.
+              </TextCustom> */}
+              <Link to="signin" style={{ textDecoration: "none" }}>
+                <Button>
+                  <AccountCircleOutlinedIcon />
+                  SIGN IN
+                </Button>
+              </Link>
+            </Login>
+            <Hr />
+          </>
+        )}
+        {currentUser && (
+          <>
+            <Item onClick={handleLogout}>
+              {/* <LogoutIcon /> */}
+              Logout
+            </Item>
+            <Hr />
+          </>
+        )}
+        <Title>BEST OF YOUTUBE</Title>
+        <Item>
+          <LibraryMusicOutlinedIcon />
+          Music
+        </Item>
+        <Item>
+          <SportsBasketballOutlinedIcon />
+          Sports
+        </Item>
+        <Item>
+          <SportsEsportsOutlinedIcon />
+          Gaming
+        </Item>
+        <Item>
+          <MovieOutlinedIcon />
+          Movies
+        </Item>
+        <Item>
+          <ArticleOutlinedIcon />
+          News
+        </Item>
+        <Item>
+          <LiveTvOutlinedIcon />
+          Live
+        </Item>
+        <Hr />
+        <Item>
+          <SettingsOutlinedIcon />
+          Settings
+        </Item>
+        <Item>
+          <FlagOutlinedIcon />
+          Report
+        </Item>
+        <Item>
+          <HelpOutlineOutlinedIcon />
+          Help
+        </Item>
+        <Item onClick={() => setDarkMode(!darkMode)}>
+          <SettingsBrightnessOutlinedIcon />
+          {darkMode ? "Light Mode" : "Dark Mode"}
+        </Item>
+      </Wrapper>
     </Container>
-  )
-}
+  );
+};
 
-export default Menu
+export default Menu;

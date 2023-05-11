@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useEffect, useState } from "react";
 import styled from 'styled-components'
 import CircleIcon from '@mui/icons-material/Circle';
 import { Link } from 'react-router-dom';
+import {format} from "timeago.js";
+import axios from "axios";
 
 const Container = styled.div`
     width: ${(props) => props.type !== "sm" && "300px"};
@@ -53,21 +55,37 @@ const Info = styled.div`
   font-size: 14px;
   color: ${({ theme }) => theme.textSoft};
 `;
-export const Card = ({type}) => {
+
+export const Card = ({type,video}) => {
+
+  const [channel,setChannel] = useState({});
+  //useEffect works only on reloading the page
+  useEffect(()=>{
+    const fetchChannel = async ()=> {
+      const res = await axios.get(`http://localhost:8800/api/users/find/${video.userId}`);
+      console.log(res.data);
+      setChannel(res.data.user);
+    }
+    fetchChannel();
+  });
+  const handleView = async () => {
+    await axios.put(`http://localhost:8800/api/videos/view/${video._id}`)
+  }
+  console.log(channel);
+  //that sm is kept beacuse to resolve the conflicts for the recommendations section later on we will do crct
   return (
-    <Link to="/video/test" style={{ textDecoration : "none"}}>
-    <Container type={type}>
-    <Image type={type} src="https://imgs.search.brave.com/Zmwpna_dJHYvq2dyR9ZcL1u9HN543ZJl8x_RPMGRms4/rs:fit:632:225:1/g:ce/aHR0cHM6Ly90c2Uz/Lm1tLmJpbmcubmV0/L3RoP2lkPU9JUC5y/b2VKR3ozZWV5aHhL/M1hSUTBMeHBRSGFG/aiZwaWQ9QXBp"/>
+    <Link to={`/video/${video._id}`} style={{ textDecoration : "none"}}>
+    <Container type={type} onClick={handleView}>
+        <Image type={type} src={video.imgUrl} />
         <Details type={type} >
-            <ChannelImage type={type} src="https://imgs.search.brave.com/XcwXat5h5XqWxUwbawesLBl9z0_l552CqjzSAw4Hzmw/rs:fit:520:225:1/g:ce/aHR0cHM6Ly90c2U0/Lm1tLmJpbmcubmV0/L3RoP2lkPU9JUC4x/ZDdUUUk2N3B3ZnIw/RjVqcVRnRDFBQUFB/QSZwaWQ9QXBp"/>
+            <ChannelImage type={type} src={channel.img ? channel.img : "abcd"} />
             <Texts>
-            <Title>Test Video</Title>
-            <ChannelName>Vaish Vlog's</ChannelName>
-            <Info>660,998 views <CircleIcon sx={{fontSize: 6 }} /> 1 day ago</Info>
-        </Texts>
+                <Title> {video.title} </Title>
+                <ChannelName>{ channel.name ? channel.name : "sample" } </ChannelName>
+                <Info>{video.views} views <CircleIcon sx={{ fontSize: 6 }} /> {format(video.createdAt)}</Info>
+            </Texts>
         </Details>
     </Container>
     </Link>
-  )
-}
-
+  );
+};
