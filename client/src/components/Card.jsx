@@ -56,33 +56,34 @@ const Info = styled.div`
   color: ${({ theme }) => theme.textSoft};
 `;
 
+
 export const Card = ({type,video}) => {
 
   const [channel,setChannel] = useState({});
   //useEffect works only on reloading the page
-  useEffect(()=>{
+  useEffect(()=> {
     const fetchChannel = async ()=> {
       const res = await axios.get(`http://localhost:8800/api/users/find/${video.userId}`);
-      console.log(res.data);
-      setChannel(res.data.user);
+      setChannel(res.data);
     }
     fetchChannel();
-  });
+  },[video]);//type is arguement -- props
+
   const handleView = async () => {
     await axios.put(`http://localhost:8800/api/videos/view/${video._id}`)
   }
-  console.log(channel);
+
   //that sm is kept beacuse to resolve the conflicts for the recommendations section later on we will do crct
   return (
     <Link to={`/video/${video._id}`} style={{ textDecoration : "none"}}>
     <Container type={type} onClick={handleView}>
         <Image type={type} src={video.imgUrl} />
         <Details type={type} >
-            <ChannelImage type={type} src={channel.img ? channel.img : "abcd"} />
+            <ChannelImage type={type} src={channel.img} />
             <Texts>
                 <Title> {video.title} </Title>
-                <ChannelName>{ channel.name ? channel.name : "sample" } </ChannelName>
-                <Info>{video.views} views <CircleIcon sx={{ fontSize: 6 }} /> {format(video.createdAt)}</Info>
+                <ChannelName>{ channel.name } </ChannelName>
+                <Info>{video.views} views <CircleIcon sx={{ fontSize: 8 }} /> {format(video.createdAt)}</Info>
             </Texts>
         </Details>
     </Container>

@@ -1,12 +1,23 @@
-import React from 'react'
-import styled from 'styled-components';
+import React, { useEffect, useState } from "react";
+import styled from "styled-components";
 import CircleIcon from "@mui/icons-material/Circle";
 import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import ThumbDownOffAltOutlinedIcon from "@mui/icons-material/ThumbDownOffAltOutlined";
 import ReplyOutlinedIcon from "@mui/icons-material/ReplyOutlined";
 import AddTaskOutlinedIcon from "@mui/icons-material/AddTaskOutlined";
-import { Comments } from '../components/Comments';
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import ThumbDownIcon from "@mui/icons-material/ThumbDown";
+import { Comments } from "../components/Comments";
 import { Card } from "../components/Card";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
+import axios from "axios";
+import { fetchSuccess } from "../redux/videoSlice";
+import { format } from "timeago.js";
+import { like, dislike } from "../redux/videoSlice";
+import { subscription } from "../redux/userSlice";
+import { Recommendation } from "../components/Recommendation";
 
 const Container = styled.div`
   display: flex;
@@ -14,13 +25,11 @@ const Container = styled.div`
 `;
 
 const Content = styled.div`
-  flex : 5;
-
+  flex: 5;
 `;
 
 const VideoWrapper = styled.div`
-  flex : 5;
-
+  flex: 2;
 `;
 
 const Title = styled.h1`
@@ -57,13 +66,12 @@ const Button = styled.div`
 
 const Hr = styled.hr`
   margin: 15px 0px;
-  border: 0.5px solid ${({ theme }) => theme.soft};
+  border: 0.5px solid ${({ theme }) => theme.text};
 `;
 
 const Channel = styled.div`
   display: flex;
-  justify-content : space-between;
-
+  justify-content: space-between;
 `;
 
 const ChannelInfo = styled.div`
@@ -109,30 +117,117 @@ const Subscribe = styled.button`
   cursor: pointer;
 `;
 
+const VideoFrame = styled.video`
+  max-height: 720px;
+  width: 100%;
+  object-fit: cover;
+`;
+
 export const Video = () => {
+  const { currentVideo } = useSelector((state) => state.video);
+  const { currentUser } = useSelector((state) => state.user);
+  //why reducer for current Video fetching and why ot for the channel name means
+  //by using the usestate if any changes are made then after refreshing the page only we can see them
+  //but by using the useSelector the immedidate changes can be seen like (liking the post) (disliking post)
+  //etc
+
+  const dispatch = useDispatch();
+
+  //to get video id from the params comes in router of react
+  const path = useLocation().pathname.split("/")[2];
+  const [channel, setChannel] = useState({});
+console.log("hi");
+  // useEffect(() => {
+    console.log("hii");
+    const fetchData = async () => {
+      try {
+        const videoRes = await axios.get(
+          `http://localhost:8800/api/videos/find/${path}`
+        );
+        const channelRes = await axios.get(
+          `http://localhost:8800/api/users/find/${videoRes.data.userId}`
+        );
+        setChannel(channelRes.data);
+        console.log(channelRes.data);
+        dispatch(fetchSuccess(videoRes.data));
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
+  // }, [dispatch, path]);
+  console.log("hiii");
+
+  const handleLike = async () => {
+    await axios.post(
+      `http://localhost:8800/api/users/like/${currentVideo._id}`,
+      {
+        token: currentUser.token,
+      }
+    );
+    dispatch(like(currentUser.otherDetails._id));
+  };
+
+  const handleDislike = async () => {
+    await axios.post(
+      `http://localhost:8800/api/users/dislike/${currentVideo._id}`,
+      {
+        token: currentUser.token,
+      }
+    );
+    dispatch(dislike(currentUser.otherDetails._id)); //because we aldready have the video details in Video Slice
+  };
+
+  const handleSubscribe = async () => {
+    currentUser.otherDetails.subscribedUsers.includes(channel._id)
+      ? await axios.post(
+          `http://localhost:8800/api/users/unsub/${channel._id}`,
+          {
+            token: currentUser.token,
+          }
+        )
+      : await axios.post(`http://localhost:8800/api/users/sub/${channel._id}`, {
+          token: currentUser.token,
+        });
+
+    dispatch(subscription(channel._id)); //because we aldready have the user details in user Slice
+  };
+  console.log(currentVideo);
+  
   return (
+    
     <Container>
       <Content>
-      <VideoWrapper>
-          <iframe
-            width="100%"
-            height="450"
-            src="https://www.youtube.com/embed/k3Vfj-e1Ma4"
-            title="YouTube video player"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          ></iframe>
+        <VideoWrapper>
+          <VideoFrame src={currentVideo.videoUrl} controls></VideoFrame>
         </VideoWrapper>
-        <Title> Test Video</Title>
+        <Title>{currentVideo.title}</Title>
         <Details>
-          <Info> 660,998 views <CircleIcon sx={{ fontSize: 8 }} /> 1 day ago</Info>
+          <Info>
+            {currentVideo.views} views <CircleIcon sx={{ fontSize: 8 }} />{" "}
+            {format(currentVideo.createdAt)}
+          </Info>
           <Buttons>
-          <Button>
-              <ThumbUpOutlinedIcon /> 123
+            <Button onClick={handleLike}>
+              {currentVideo.likes?.includes(
+                currentUser && currentUser.otherDetails._id
+              ) ? (
+                <ThumbUpIcon />
+              ) : (
+                <ThumbUpOutlinedIcon />
+              )}{" "}
+              {currentVideo.likes?.length} Likes
             </Button>
-            <Button>
-              <ThumbDownOffAltOutlinedIcon /> Dislike
+            <Button onClick={handleDislike}>
+              {currentVideo.dislikes?.includes(
+                currentUser && currentUser.otherDetails._id
+              ) ? (
+                <ThumbDownIcon />
+              ) : (
+                <ThumbDownOffAltOutlinedIcon />
+              )}{" "}
+              {currentVideo.dislikes?.length} Dislikes
             </Button>
             <Button>
               <ReplyOutlinedIcon /> Share
@@ -145,41 +240,24 @@ export const Video = () => {
         <Hr />
         <Channel>
           <ChannelInfo>
-            <Image src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKghVQuH0fn1jsE-yzJyOOlQ0yixDf-J9Nw1Dj0Y34Ov8bCFVacTwlzNH7uFYxmNpPai0HOk6L3hM&usqp=CAU&ec=48665698'/>
+            <Image src={channel.img} />
             <ChannelDetail>
-              <ChannelName>Vaish Vlog's</ChannelName>
-              <ChannelCounter>500K subscribers</ChannelCounter>
-              <Description>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                sunt in culpa qui officia deserunt mollit anim id est laborum.
-              </Description>
+              <ChannelName>{channel.name}</ChannelName>
+              <ChannelCounter>{channel.subscribers} subscribers</ChannelCounter>
+              <Description>{currentVideo.desc}</Description>
             </ChannelDetail>
             <Description />
           </ChannelInfo>
-          <Subscribe>SUBSCRIBE</Subscribe>
+          <Subscribe onClick={handleSubscribe}>
+            {currentUser &&
+            currentUser.otherDetails.subscribedUsers?.includes(channel._id)
+              ? "SUBSCRIBED"
+              : "SUBSCRIBE"}
+          </Subscribe>
         </Channel>
-        <Comments />
+        <Comments videoId={currentVideo._id} />
       </Content>
-      <Recommendation>
-      <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-        <Card type="sm" />
-      </Recommendation>
+      <Recommendation tags={currentVideo.tags} />
     </Container>
-  
-  )
+  );
 };

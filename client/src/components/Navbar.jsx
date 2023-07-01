@@ -1,10 +1,12 @@
-import React from 'react'
+import {React, useState} from 'react'
 import styled from 'styled-components';
 import VideoCallOutlinedIcon from "@mui/icons-material/VideoCallOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { Upload } from "../components/Upload";
+
 
 const Container =styled.div`
   position: sticky;
@@ -71,34 +73,55 @@ const Avatar = styled.img`
   background-color: #999;
 `;
 
+const IconCustom = styled.div`
+  color: ${({ theme }) => theme.text};
+`;
+
 /*If using padding means use Wrapper Class*/
+
 export const Navbar = () => {
-
-  const {currentUser} = useSelector((state)=>state.user);
- 
-  console.log(currentUser);
-
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const { currentUser } = useSelector((state) => state.user);
   return (
-    <Container>
-      <Wrapper>
-        <Search>
-          <Input placeholder='Search'/>
-          <SearchOutlinedIcon/>
-        </Search>
-        { currentUser ? (
-          <User>
-            <VideoCallOutlinedIcon/>
-            <Avatar/>
-            {currentUser.name}
-          </User>
-        ) :<Link to="signin" style={{ textDecoration: "none" }}>
+    <>
+      <Container>
+        <Wrapper>
+          <Search>
+            <Input
+              placeholder="Search"
+              onChange={(e) => setQ(e.target.value)}
+            />
+            <IconCustom>
+              <SearchOutlinedIcon onClick={() => navigate(`/search?q=${q}`)} />
+            </IconCustom>
+          </Search>
+          {currentUser ? (
+            <User>
+              <VideoCallOutlinedIcon onClick={() => setOpen(true)} />
+              <Avatar
+                src={
+                  currentUser.otherDetails !== null
+                    ? currentUser.otherDetails.img
+                    : "abcd"
+                }
+              />
+              {currentUser.otherDetails !== null
+                ? currentUser.otherDetails.name
+                : "sampleName"}
+            </User>
+          ) : (
+            <Link to="signin" style={{ textDecoration: "none" }}>
               <Button>
                 <AccountCircleOutlinedIcon />
                 SIGN IN
               </Button>
             </Link>
-            }
-      </Wrapper>
-    </Container>
-  )
-}
+          )}
+        </Wrapper>
+      </Container>
+      {open && <Upload setOpen={setOpen} />}
+    </>
+  );
+};

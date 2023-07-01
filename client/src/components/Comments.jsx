@@ -1,6 +1,9 @@
-import React from 'react'
-import styled from 'styled-components'
-import { Comment } from './Comment';
+import React , {useEffect, useState} from "react";
+import styled from "styled-components";
+import Comment from "./Comment";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import SendIcon from '@mui/icons-material/Send';
 
 const Container = styled.div`
   padding : 20px 0px;
@@ -28,22 +31,50 @@ const Input = styled.input`
   width: 100%;
 `;
 
-export const Comments = () => {
-    return (
-      <Container>
-        <NewComment>
-          <Avatar src="https://yt3.ggpht.com/yti/APfAmoE-Q0ZLJ4vk3vqmV4Kwp0sbrjxLyB8Q4ZgNsiRH=s88-c-k-c0x00ffffff-no-rj-mo" />
-          <Input placeholder="Add a comment..." />
-        </NewComment>
-        <Comment/>
-        <Comment/>
-        <Comment/>
-        <Comment/>
-        <Comment/>
-        <Comment/>
-        <Comment/>
-      </Container>
-    );
-  };
+const Button = styled.div`
+  color : ${({ theme }) => theme.text};
+`;
+//we no need to use currentVideo._id because aldready in Video we have sent the props of video_id
+export const Comments = ({videoId}) => {
 
+  const [comments , setComments] = useState([]);
+  const { currentUser } = useSelector((state)=>state.user);
+  const { currentVideo } = useSelector((state)=>state.video);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8800/api/comments/${videoId}`);
+        setComments(res.data.comments);//res.data is imp
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    fetchComments();
+  })
+
+  const [commentDesc,setCommentDesc] = useState("");
+
+  //here we are getting directlt because we are using the useState as in page we are doing things
+  const handleComment = async () => {
+    const res = await axios.post("http://localhost:8800/api/comments/",{
+      videoId : currentVideo._id,
+      desc : commentDesc,
+      token : currentUser.token,//req.user.id is taken from the verify token
+    });
+  }
+
+  return (
+    <Container>
+      <NewComment>
+        <Avatar src={currentUser ? currentUser.otherDetails.img : "abcd"} />
+        <Input placeholder="Add a comment..." onChange={e=>setCommentDesc(e.target.value)}/>
+        <Button onClick={handleComment}><SendIcon /></Button>
+      </NewComment>
+      {comments.map (comment => (
+        <Comment key={comment._id} comment = {comment} />
+      ))}
+    </Container>
+  );
+};
 
